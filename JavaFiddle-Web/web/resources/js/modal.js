@@ -148,7 +148,15 @@ $(document).ready(function() {
         for(var i = 0; i < commits.length; ++i)
             $("#modal-commits-name").prepend("<option>" + commits[i] +"</option>");
     });
+
+    // NEW PROJECT MODEL
+    //method swaps active input depends on selected radio
+    $('#modal-newproj :radio').click(function(e) {
+        var enabledInputs = $('#modal-newproj :input:text:enabled');
+        $('#modal-newproj :input:text:disabled').prop("disabled", false);
+        enabledInputs.prop("disabled", true);
     });
+});
 
 // NEW PROJECT DIALOG
 //
@@ -196,24 +204,28 @@ function m_newproj_updhash() {
 }
 
 function addProject() {
-    //var packageName = $('#modal-newpack-name').val();
-    var projectName = $('#modal-newproj-name').val();
-    //var projectName = $("#modal-newproj-project").val();
-    
-    if(isRightProjectName(projectName)) {
-        $.ajax({
-            url: PATH + '/webapi/tree/addProject',
-            type: 'POST',
-            data: {
-                //packageName: packageName,
-                projectName: projectName
-            },
-            contentType: "application/x-www-form-urlencoded",
-            success: function() {
-                buildTree();
-            }
-        });  
+
+    var projectInfo = new Object();
+    if(!$('#modal-project-hash').prop('disabled')) {
+        projectInfo.projectHash = $('#modal-project-hash').val().toString();
     }
+    if(!$('#modal-newproj-name').prop('disabled')) {
+        projectInfo.projectName = $('#modal-newproj-name').val().toString();
+    }
+    projectInfo.userNickName = JSON.parse(sessionStorage.curUser).nickName;
+    
+    $.ajax({
+        type: "POST",
+        url: PATH + "/fiddle/projects",
+        contentType: "application/json",
+        'data': JSON.stringify(projectInfo),
+        success: function(data) {
+            buildTree();
+        },
+        error: function(jqXHR) {
+            //!TODO write feedback to user
+        }
+    });
 }
 function addExampleProject() {
     $.ajax({

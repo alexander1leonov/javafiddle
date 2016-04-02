@@ -279,22 +279,20 @@
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="modal-newproj-name">Project Name:</label>
-                        <input id="modal-newproj-name" type="text" class="form-control enter-active" placeholder="Input project name…" onkeyup="m_newproj_updname();" />
+                        <label for="modal-newproj-name"><input type="radio" name="optradio" checked="checked"/>Empty project:</label>
+                        <input id="modal-newproj-name" type="text" class="form-control enter-active" placeholder="Input project name…" onkeyup="m_newproj_updname();"/>
                         <p id ="modal-newproj-verify" style="color:red"></p>
                     </div>
-                    <!--
+
                     <div class="form-group">
-                        <label for="modal-project-hash">Project Hash:</label>
-                        <input id="modal-project-hash" type="text" class="form-control enter-active" placeholder="Input project hash…" onkeyup="m_newproj_updhash()"/>
+                        <label for="modal-project-hash"><input type="radio" name="optradio"/>Copy of existing project:</label>
+                        <input id="modal-project-hash" type="text" class="form-control enter-active" placeholder="Input hash of the project you want to create…" onkeyup="m_newproj_updhash()" disabled = "disabled"/>
                     </div>
-                    -->
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                    <button id="modal-newproj-example-ok" type="button" class="btn btn-primary" data-dismiss="modal" onclick="addExampleProject();">Add example project</button>
                     <button id="modal-newproj-ok" type="button" disabled="true" class="btn btn-primary" data-dismiss="modal" onclick="addProject();">Add new project</button>
-                    <!-- <button id="modal-project-hash-ok" type="button" disabled="false"  class="btn btn-primary" data-dismiss="modal" onclick="addProjectByHash();">Add by hash</button>-->
                 </div>
             </div>
         </div>
