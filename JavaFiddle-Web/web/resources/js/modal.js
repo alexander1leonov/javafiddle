@@ -12,13 +12,13 @@ $(document).ready(function() {
         var projects = getProjectsList();
         for (var i = 0; i < projects.length; i++)
             $("#modal-newpack-project").prepend("<option>" + projects[i] +"</option>");
-        var projectName = getNameByID(getProjectId());
+        var projectName = getProjectNameByHash(getProjectId());
         $("#modal-newpack-project").val(projectName);
         
         var fullpath = "./" + projectName + "/";
 
         if ($elClicked.hasClass("package")) {
-            var oldPackageName = getNameByID($elClicked.closest('li').attr('id'));
+            var oldPackageName = getFileNameByID($elClicked.closest('li').attr('id').match(/[\d]+/));
             $("#modal-newpack-name").val(oldPackageName + ".");
             fullpath += oldPackageName.replace(/\./g, '/');
         }
@@ -744,37 +744,34 @@ function revertToCommit() {
 }
 
 // AJAX REQUESTS
-//
-function getNameByID(id) {
-    var name;
-    
-    $.ajax({
-        url: PATH + '/webapi/tree/namebyid',
-        type: 'GET',
-        dataType: "json",
-        data: {id: id},
-        async: false,
-        success: function(data) {
-            name = data;
-        }
-    }); 
-    
+//here id any file id
+function getFileNameByID(id) {
+    var name = "";
+    var hashsList = JSON.parse(sessionStorage.userProjects);
+
+    hashsList.forEach(function(item) {
+        var projectTree = JSON.parse(sessionStorage.getItem(item));
+        name = name + searchForProjectTreeForNode(projectTree, id);
+    });
+
     return name;
 }
 
+function getProjectNameByHash(hash) {
+    return JSON.parse(sessionStorage.getItem(hash)).name
+}
+
+
+
 function getProjectsList() {
-    var projectsList;
+    var projectsList = new Array();
     
-    $.ajax({
-        url: PATH + '/webapi/tree/projectslist',
-        type: 'GET',
-        dataType: "json",
-        async: false,
-        success: function(data) {
-            projectsList = data;
-        }
-    }); 
-    
+    var hashsList = JSON.parse(sessionStorage.userProjects);
+
+    hashsList.forEach(function(item) {
+        projectsList.push(JSON.parse(sessionStorage.getItem(item)).name);
+    });
+
     return projectsList;
 }
 
@@ -820,22 +817,23 @@ function isRightProjectName(name) {
     return result;
 }
 
+//!TODO now we have not any verification on the serverSide
 function isRightPackageName(packageName, projectName) {
-    var result;
-    
-    $.ajax({
-        url: PATH + '/webapi/tree/rpackname',
-        type: 'GET',
-        dataType: "json",
-        async: false,
-        data: {
-            packageName: packageName,
-            projectName: projectName
-        },
-        success: function(data) {
-            result = data;
-        }
-    }); 
+    var result = "ok";
+    //
+    //$.ajax({
+    //    url: PATH + '/webapi/tree/rpackname',
+    //    type: 'GET',
+    //    dataType: "json",
+    //    async: false,
+    //    data: {
+    //        packageName: packageName,
+    //        projectName: projectName
+    //    },
+    //    success: function(data) {
+    //        result = data;
+    //    }
+    //});
 
     return result;
 }

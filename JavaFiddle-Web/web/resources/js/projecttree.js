@@ -98,3 +98,15 @@ function getProjectStructure(projectHash) {
     });
     return projectStructure;
 }
+
+function searchForProjectTreeForNode(node, searchedNodeId) {
+    if (node.fileId == searchedNodeId) {
+        return node.name;
+    }
+    if(node.childNodes.length == 0) {
+        return "";
+    }
+    for(var i = 0; i < node.childNodes.length; i++){
+        return "" + searchForProjectTreeForNode(node.childNodes[i], searchedNodeId);
+    }
+}
