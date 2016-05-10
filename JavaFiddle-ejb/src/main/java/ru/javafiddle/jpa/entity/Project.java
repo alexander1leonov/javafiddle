@@ -3,25 +3,52 @@ package ru.javafiddle.jpa.entity;
 /**
  * Created by Fedor on 18.11.2015.
  */
-import javax.persistence.*;
+
+import javax.persistence.Cacheable;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
 import java.util.List;
 
 @Entity
-@Table
-
+@Cacheable(false)
+@Table(name = "\"Project\"")
 public class Project {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "\"projectId\"")
     private int projectId;
+
+    @Column(name = "\"projectName\"")
     private String projectName;
+
     @ManyToOne
+    @JoinColumn(name = "\"groupId\"")
     private Group group;
-    @OneToMany
-    private List<File> file;
-    @OneToMany
-    private List<LibraryToProject> lib;
-    @OneToOne
-    Hash hash;
+
+    @OneToMany(cascade = CascadeType.REMOVE, orphanRemoval = true,mappedBy = "project")
+    private List<File> files;
+
+    @ManyToMany
+    @JoinTable(name = "\"LibraryToProject\"",
+            joinColumns = @JoinColumn(name = "\"libraryId\""),
+            inverseJoinColumns = @JoinColumn(name = "\"projectId\""))
+    private List<Library> libs;
+
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @JoinColumn(name = "\"id\"")
+    private Hash hash;
 
     public Project(String projectName, Group group) {
         this.projectName = projectName;
@@ -55,18 +82,18 @@ public class Project {
         this.group = group;
     }
 
-    public List<File> getFiles() { return file; }
+    public List<File> getFiles() { return files; }
 
-    public void setFileList(List<File> file) { this.file = file; }
+    public void setFileList(List<File> files) { this.files = files; }
 
     public Hash getHash() { return hash; }
 
     public void setHash( Hash hash) { this.hash = hash; }
 
 
-    public List<LibraryToProject> getLibraries() { return lib; }
+    public List<Library> getLibraries() { return libs; }
 
-    public void setLibraries( List<LibraryToProject> lib) { this.lib = lib; }
+    public void setLibraries( List<Library> libs) { this.libs = libs; }
 
     @Override
     public String toString() {

@@ -3,23 +3,34 @@ package ru.javafiddle.jpa.entity;
 /**
  * Created by Fedor on 18.11.2015.
  */
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import java.util.List;
 
 /**
  * A type of file.
  */
 @Entity
-@Table
-
+@Table(name = "\"Type\"")
 public class Type {
+
+    public static final int PROJECT_FILE_TYPEID = 2;
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "\"typeId\"")
     private int typeId;
+
+    @Column(name = "\"typeName\"")
     private String typeName;
+
+    @OneToMany(mappedBy = "type")
+    private List<File> files;
 
     public Type(String typeName) {
         this.typeName = typeName;
@@ -42,6 +53,14 @@ public class Type {
 
     public void setTypeName(String typeName) {
         this.typeName = typeName;
+    }
+
+    public List<File> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<File> files) {
+        this.files = files;
     }
 
     @Override
