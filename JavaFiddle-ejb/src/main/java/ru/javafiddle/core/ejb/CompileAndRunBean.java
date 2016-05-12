@@ -111,7 +111,9 @@ public class CompileAndRunBean extends DynamicCompiler {
                 String mainMeth = findMain(sources, getClassLoader());
                 Process process = null;
                 java.io.File proj = new java.io.File(projectHash + "/src");
-                process = Runtime.getRuntime().exec("java " + mainMeth, null, proj);
+                ProcessBuilder builder = new ProcessBuilder("java", mainMeth);
+                builder.directory(proj);
+                process = builder.start();
                 OutputStream stdin = process.getOutputStream ();
                 InputStream stderr = process.getErrorStream ();
                 InputStream stdout = process.getInputStream ();
@@ -123,8 +125,11 @@ public class CompileAndRunBean extends DynamicCompiler {
                     mes += "Stderr: " + help + "\n";
                 }
                 java.io.File projectFile = new java.io.File(projectHash);
+                process.waitFor();
                 deleteFolders(projectFile);
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
