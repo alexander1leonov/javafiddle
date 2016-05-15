@@ -7,10 +7,7 @@ import ru.javafiddle.web.models.FileJF;
 import ru.javafiddle.web.models.ProjectJF;
 
 import javax.ejb.EJB;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -28,69 +25,35 @@ public class CompileAndRunService {
     @EJB
     FileBean filesBean;
 
-    @Path("/compile")
+    @Path("/compile/{projectHash}")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response compile(ProjectJF project) {
-//!TODO beans are changed, so method must be implemented with new ones
-//        //It's a question what ProjectJF should contain
-//        try {
-//            String projectHash = project.getProjectHash();
-//            String compilationOutput = null;
-//            if(projectHash == null){
-//                //!user is guest!
-//                //!what to do
-//            }else{
-//                //save firstly
-//                for(FileJF f: project.getProjectFiles()){
-//                    Integer fileId = f.getFileId();
-//                    if(fileId == null) { //file has not been added yet
-//                        filesBean.addFile(projectHash,
-//                                f.getName(),
-//                                f.getData().getBytes(),
-//                                f.getType(),
-//                                f.getPath());
-//                    } else {
-//                        filesBean.updateFile(fileId,
-//                                f.getName(),
-//                                f.getData().getBytes(),
-//                                f.getType(),
-//                                f.getPath());
-//                    }
-//                }
-//
-//                compilationOutput = compileAndRunBean.compile(projectHash);
-//            }
-//            return Response.ok().entity(compilationOutput).build();
-//        }catch (Exception e) {
-//            return Response.serverError().build();
-//        }
-        return Response.serverError().build();
-    }
-
-    @Path("/run")
-    @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response run(ProjectJF project) {
+    public Response compile(@PathParam("projectHash") String projectHash) {
         //ExecutionResult must contain Streams and may be project files
         //becouse we cun write in file
+
+        String stdout = null;
         try {
-            String projectHash = project.getProjectHash();
-            String executionResult = null;
-
-            if(projectHash == null){
-                //!TODO guest user
-                return null;
-            } else {
-                executionResult = compileAndRunBean.run(projectHash);
-                return Response.ok().entity(executionResult).build();
-            }
-
-        }catch (Exception e) {
-            return Response.serverError().build();
+            stdout = compileAndRunBean.compile(projectHash);
+            return Response.ok(stdout).build();
+        } catch (Exception e) {
+            return Response.serverError().entity("Error during compilation process!").build();
         }
+    }
+
+    @Path("/run/{projectHash}")
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response run(@PathParam("projectHash") String projectHash) {
+        //ExecutionResult must contain Streams and may be project files
+        //becouse we cun write in file
+
+        String stdout = compileAndRunBean.run(projectHash);
+
+        if (stdout == null || stdout.isEmpty()) {
+            return Response.serverError().entity("You can not run project until you compiled it!").build();
+        }
+        return Response.ok(stdout).build();
     }
 
 //    @Path("/compileAndRun")

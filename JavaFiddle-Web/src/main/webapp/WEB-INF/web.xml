@@ -51,6 +51,7 @@
             <url-pattern>/jsf/index.xhtml</url-pattern>
             <url-pattern>/fiddle/projects/*</url-pattern>
             <url-pattern>/fiddle/compile/*</url-pattern>
+            <url-pattern>/fiddle/run/*</url-pattern>
             <url-pattern>/logout</url-pattern>
         </web-resource-collection>
         <web-resource-collection>

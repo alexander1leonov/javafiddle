@@ -436,19 +436,7 @@ function saveAllFiles() {
 
 function saveProject() {
     saveAllFiles();
-    
-    $.ajax({
-        url: PATH + '/webapi/data/project',
-        type:'POST', 
-        async: false,
-        contentType: "application/json",
-        success: function(data) {
-            $('#latest_update').text("Project successfully saved to the disk.");
-        },
-        error: function() {
-            $('#latest_update').text("Project hasn't been saved.");
-        }
-    });
+    $('#latest_update').text("All files successfully saved to the disk.");
     console.log("saveProject() completed");
 }
 
@@ -538,29 +526,32 @@ function getFileDataById(id) {
 function compile() {
     innerLayout.open('south');
     saveProject();
-    
+
     $.ajax({
-        url: PATH + '/webapi/run/compile',
-        type: 'POST',
-        async: false,
-        contentType: "application/x-www-form-urlencoded",
-        success: function() {
-            poll();
+        type: "GET",
+        url: PATH + "/fiddle/compile/" + sessionStorage.projectID,
+        success: function(data) {
+            jfconsole.insert(data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR + textStatus + errorThrown);
+            //!TODO write feedback to user
         }
-    });  
+    });
 }
 
 function execute() {
     innerLayout.open('south');
-    saveProject();
-    
+
     $.ajax({
-        url: PATH + '/webapi/run/execute',
-        type: 'POST',
-        async: false,
-        contentType: "application/x-www-form-urlencoded",
-        success: function() {
-            poll();
+        type: "GET",
+        url: PATH + "/fiddle/run/" + sessionStorage.projectID,
+        success: function(data) {
+            jfconsole.insert(data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR + textStatus + errorThrown);
+            //!TODO write feedback to user
         }
     });  
 }
@@ -577,7 +568,7 @@ function compileAndRun() {
         success: function() {
             poll();
         }
-    });  
+    });
     */
 }
 
