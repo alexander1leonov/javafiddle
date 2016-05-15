@@ -114,22 +114,18 @@ public class CompileAndRunBean extends DynamicCompiler {
                 ProcessBuilder builder = new ProcessBuilder("java", mainMeth);
                 builder.directory(proj);
                 process = builder.start();
-                OutputStream stdin = process.getOutputStream ();
+                process.waitFor();
+//                OutputStream stdin = process.getOutputStream ();
                 InputStream stderr = process.getErrorStream ();
                 InputStream stdout = process.getInputStream ();
-                BufferedReader reader = new BufferedReader (new InputStreamReader(stdout));
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdin));
                 mes = "Stdout: " + new String(ByteStreams.toByteArray(stdout), StandardCharsets.UTF_8) + "\n";
                 String help = new String(ByteStreams.toByteArray(stderr), StandardCharsets.UTF_8);
                 if(!StringUtils.isEmpty(help)) {
                     mes += "Stderr: " + help + "\n";
                 }
                 java.io.File projectFile = new java.io.File(projectHash);
-                process.waitFor();
                 deleteFolders(projectFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
+            } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         }
