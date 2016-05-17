@@ -34,11 +34,25 @@ public class TypeBean {
                     .setParameter("typeid", typeId)
                     .getSingleResult();
         } catch (NoResultException noResult) {
-            logger.log(Level.WARNING, "No result in getHash()", noResult);
+            logger.log(Level.WARNING, "No result in getType(int)", noResult);
             return null;
         }
         return type;
 
+    }
+
+    public Type getType(String typeName) {
+
+        Type type;
+        try {
+            type = (Type)em.createQuery("SELECT t FROM Type t WHERE t.typeName =:filetype")
+                .setParameter("filetype", typeName)
+                .getSingleResult();
+        } catch (NoResultException noResult) {
+            logger.log(Level.WARNING, "No result in getType(String)", noResult);
+            return null;
+        }
+        return type;
     }
 
     public void createType (Type type) {

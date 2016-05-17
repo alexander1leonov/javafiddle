@@ -196,15 +196,24 @@ public class ProjectService {
         return group;
     }
 
+    /**
+     * Creates project file with source folder inside
+     * @param project
+     */
     private void createProjectFile(Project project) {
 
-        File projectFile = new File();
-        projectFile.setFileName(project.getProjectName());
-        projectFile.setPath(project.getProjectName() + "/");
-        projectFile.setType(typeBean.getType(Type.PROJECT_FILE_TYPEID));
-        projectFile.setProject(project);
+        fileBean.createEmptyFile(project.getHash().getHash(),
+                project.getProjectName(),
+                Type.PROJECT_FILE_TYPENAME,
+                project.getProjectName() + "/"
+                );
 
-        fileBean.createFile(projectFile);
+        fileBean.createEmptyFile(project.getHash().getHash(),
+                "src",
+                Type.SOURCEFOLDER_FILE_TYPENAME,
+                project.getProjectName() + "/src/"
+        );
+
     }
 
     private void cloneProject(Project project) throws UnsupportedEncodingException, NoSuchAlgorithmException {

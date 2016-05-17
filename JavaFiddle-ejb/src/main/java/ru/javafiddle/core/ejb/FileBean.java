@@ -1,5 +1,6 @@
 package ru.javafiddle.core.ejb;
 
+import javax.ejb.EJB;
 import javax.persistence.PersistenceContext;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -21,6 +22,9 @@ public class FileBean {
     @PersistenceContext(name = "JFPersistenceUnit")
     EntityManager em;
 
+    @EJB
+    TypeBean typeBean;
+
     public FileBean() {
     }
 
@@ -34,6 +38,27 @@ public class FileBean {
 
     }
 
+    /**
+     * Creates empty file in project
+     * @param fileName
+     * @param typeName
+     * @param path
+     */
+    public void createEmptyFile(String projectHash, String fileName, String typeName, String path) {
+
+        TypedQuery<Hash> query = em.createQuery("SELECT h FROM Hash h WHERE h.hash=:projectHash", Hash.class);
+        Hash h = query.setParameter("projectHash",projectHash).getSingleResult();
+
+        File file = new File();
+        file.setFileName(fileName);
+        file.setPath(path);
+        file.setProject(h.getProject());
+        file.setType(typeBean.getType(typeName));
+        file.setData(new byte[]{});
+        em.persist(file);
+
+    }
+
     public void createFile(File file) {
         //!TODO validation check
         em.persist(file);
@@ -43,7 +68,7 @@ public class FileBean {
 
         File file = getFile(fileId);
 
-        Type type = getType(fileType);
+        Type type = typeBean.getType(fileType);
         file.setFileName(fileName);
         file.setData(data);
         file.setType(type);
@@ -52,16 +77,6 @@ public class FileBean {
         em.persist(file);
 
         return file;
-    }
-
-    public Type getType(String fileType) {
-
-        Type type = (Type)em.createQuery("SELECT t FROM Type t WHERE t.typeName =:filetype")
-                .setParameter("filetype", fileType)
-                .getSingleResult();
-        return type;
-
-
     }
 
     public void deleteFile(String projectHash, int fileId) {
@@ -77,28 +92,10 @@ public class FileBean {
 
     public File getFile(int fileId) {
 
-        File file = (File)em.createQuery("SELECT f FROM File f where f.fileId =:fileid")
+        File file = (File) em.createQuery("SELECT f FROM File f where f.fileId =:fileid")
                 .setParameter("fileid", fileId)
                 .getSingleResult();
         return file;
-    }
-
-    private Project getProject(String projectHash) {
-
-        Project project = (Project)em.createQuery("SELECT p FROM Project p WHERE p.hash.hash =:projecthash")
-                .setParameter("projecthash", projectHash)
-                .getSingleResult();
-        return project;
-    }
-
-    private Type getFile(String fileType) {
-
-        Type type = (Type)em.createQuery("SELECT t FROM Type t WHERE t.typeName =:filetype")
-                .setParameter("filetype", fileType)
-                .getSingleResult();
-        return type;
-
-
     }
 }
 

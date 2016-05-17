@@ -15,7 +15,7 @@ $(document).ready(function() {
         var projectName = getProjectNameByHash(getProjectId());
         $("#modal-newpack-project").val(projectName);
         
-        var fullpath = "./" + projectName + "/";
+        var fullpath = projectName + "/src/";
 
         if ($elClicked.hasClass("package")) {
             var oldPackageName = getFileNameByID($elClicked.closest('li').attr('id').match(/[\d]+/));
@@ -45,20 +45,21 @@ $(document).ready(function() {
         var projects = getProjectsList();
         for (var i = 0; i < projects.length; i++)
             $("#modal-newfile-project").prepend("<option>" + projects[i] +"</option>");
-        var currentProject = getNameByID(getProjectId());
+        var currentProject = getProjectNameByHash(getProjectId());
         $("#modal-newfile-project").val(currentProject);
 
-        var packages = getPackagesList($("#modal-newfile-project").val());
+        var packages = getPackagesList(getProjectId());
         for (var i = 0; i < packages.length; i++)
-            $("#modal-newfile-package").append("<option>" + packages[i].replace("<", "&lt;").replace(">", "&gt;") +"</option>");
+            $("#modal-newfile-package").append("<option>" + packages[i] + "</option>");
 
-        var fullpath = "./" + currentProject + "/";
+        var fullpath = currentProject + "/src/";
 
-        if ($elClicked.hasClass("package")) {
-            var packageName = getNameByID($elClicked.closest('li').attr('id'));
-            fullpath += packageName.replace(/\./g, '/') + "/";
-            $("#modal-newfile-package").val(packageName);
-        }
+        //!TODO
+        // if ($elClicked.hasClass("package")) {
+        //     var PackageName = getFileNameByID($elClicked.closest('li').attr('id').match(/[\d]+/));
+        //     fullpath += packageName.replace(/\./g, '/');
+        //     $("#modal-newfile-package").val(packageName);
+        // }
         
         $("#modal-newfile-fullpath").val(fullpath);
     });
@@ -424,7 +425,7 @@ function m_newpack_updname() {
 
 function m_newpack_update() {
     var projectName = $("#modal-newpack-project").val();
-    var fullpath = "./" + projectName + "/";
+    var fullpath = projectName + "/src/";
     var packageName = $("#modal-newpack-name").val();
 
     var irpn = isRightPackageName(packageName, projectName);
@@ -454,20 +455,32 @@ function m_newpack_update() {
 function addPackage() {
     var packageName = $('#modal-newpack-name').val();
     var projectName = $("#modal-newpack-project").val();
+
+    var newPackageFile = new Object();
+    //this mnipulation is for suarence that selected project is exactly
+    //what we want; here I assume that order int projectsList is the same as in
+    //select menu
+    var hashsList = JSON.parse(sessionStorage.userProjects);
+    newPackageFile.projectHash= hashsList[hashsList.length- $("#modal-newpack-project")[0].selectedIndex -1];
+    // var hashsList = JSON.parse(sessionStorage.userProjects);
+    // newPackageFile.projectHash = hashsList[$("#modal-newpack-project")[0].selectedIndex];
+    newPackageFile.fileName = packageName;
+    newPackageFile.typeName = "package";
+    newPackageFile.path = $("#modal-newpack-fullpath").val() + "/";
     
     if(isRightPackageName(packageName, projectName)) {
         $.ajax({
-            url: PATH + '/webapi/tree/addPackage',
-            type: 'POST',
-            data: {
-                packageName: packageName,
-                projectName: projectName
-            },
-            contentType: "application/x-www-form-urlencoded",
-            success: function() {
+            type: "POST",
+            url: PATH + "/fiddle/files/",
+            contentType: "application/json",
+            'data': JSON.stringify(newPackageFile),
+            success: function(data) {
                 buildTree();
+            },
+            error: function(jqXHR) {
+                console.log("Cannot create package " + JSON.stringify(newPackageFile));
             }
-        });  
+        });
     }
 }
 
@@ -484,7 +497,8 @@ function m_newfile_updname() {
 }
 
 function m_newfile_updproject() {
-    var currentProject = $("#modal-newfile-project").val();
+    var hashsList = JSON.parse(sessionStorage.userProjects);
+    var currentProject = hashsList[$("#modal-newfile-project option").size() - $("#modal-newfile-project")[0].selectedIndex -1];
     $("#modal-newfile-package").find('option').remove();
     var packages = getPackagesList(currentProject);
     for (var i = 0; i < packages.length; i++)
@@ -494,16 +508,20 @@ function m_newfile_updproject() {
 
 function m_newfile_update() {
     var projectName = $("#modal-newfile-project").val();
-    var fullpath = "./" + projectName + "/";
+    var fullpath = projectName + "/src/";
     var packageName = $("#modal-newfile-package").val();
-    if (packageName !== "<default_package>")
-        fullpath += packageName.replace(/\./g, '/') + "/";
+    //TODO
+    // if (packageName !== "<default_package>")
+    //     fullpath += packageName.replace(/\./g, '/') + "/";
+    if(packageName != null)
+        fullpath += packageName + "/";
+
     var className = $('#modal-newfile-name').val();
 
     var ircn = isRightClassName(className, packageName, projectName);
     if (ircn === "ok") {
-        if (!className.endsWith(".java"))
-            className += ".java";
+        // if (!className.endsWith(".java"))
+        //     className += ".java";
         fullpath += className;
         $("#modal-newfile-ok").prop('disabled', false);
         $("#modal-newfile-verify").text("");
@@ -518,6 +536,9 @@ function m_newfile_update() {
             case "used":
                 $("#modal-newfile-verify").text("This class name is already used in this package.");
                 break;
+            case "null":
+                $("#modal-newfile-verify").text("Fill in the gaps please.");
+                break;
             default:
                 $("#modal-newfile-verify").text("Unknown error.");
                 break;
@@ -527,49 +548,33 @@ function m_newfile_update() {
 }
 
 function addFile() {
+    var File = new Object();
+    //this mnipulation is for suarence that selected project is exactly
+    //what we want; here I assume that order int projectsList is the same as in
+    //select menu
+    var hashsList = JSON.parse(sessionStorage.userProjects);
+    File.projectHash= hashsList[$("#modal-newfile-project option").size() - $("#modal-newfile-project")[0].selectedIndex -1];
     var className = $('#modal-newfile-name').val();
-    var packName = $("#modal-newfile-package").val();
-    var projectName = $("#modal-newfile-project").val();
-    var classType = $("#modal-newfile-classtype").val();
-    
     if(className.endsWith(".java")) {
         className = className.substring(0, className.length - 5);
     }
-    
-    if(isRightClassName(className, packName, projectName)) {
-        var id;
-        $.ajax({
-            url: PATH + '/webapi/tree/addFile',
-            type: 'POST',
-            data: {
-                className: className,
-                packageName: packName,
-                projectName: projectName,
-                type: classType
-            },
-            contentType: "application/x-www-form-urlencoded",
-            success: function(data) {
-                var li = addTabToPanel("node_" + data + "_tab", (className.endsWith(".java") ? className  : className + ".java"), classType);
-                id = "node_" + data + "_tab";
-                selectTab(li);
-                buildTree();
-                $.ajax({
-                    url: PATH + '/webapi/git/add',
-                    type: 'POST',
-                    data: {classId: id},
-                    success: function(data) {
-                        console.log("Successfully added " + id + " to git.");
-                    },
-                    error: function(data) {
-                        console.log("Failed to add " + id + " to git.");
-                    }
-                });
-                
-            }
-        });
-        return true;
-    }
-    return false;
+    File.fileName = className;
+    File.typeName = $("#modal-newfile-classtype").val();
+    File.path = $("#modal-newfile-fullpath").val();
+
+
+    $.ajax({
+        type: "POST",
+        url: PATH + "/fiddle/files/",
+        contentType: "application/json",
+        'data': JSON.stringify(File),
+        success: function(data) {
+            buildTree();
+        },
+        error: function(jqXHR) {
+            console.log("Cannot create file " + JSON.stringify(File));
+        }
+    });
 }
 
 
@@ -616,7 +621,7 @@ function m_rename_update() {
         case "ok":
             $("#modal-rename-verify").text("");
             $("#modal-rename-ok").prop('disabled', false);
-            break;        
+            break;
         default:
             $("#modal-rename-verify").text("Unknown error.");
             break;
@@ -775,25 +780,16 @@ function getProjectsList() {
     return projectsList;
 }
 
-function getPackagesList(projectname) {
-    var packagesList;
+function getPackagesList(selectedProjectHash) {
+    var projectStructure = JSON.parse(sessionStorage.getItem(selectedProjectHash));
+    var packagesList = new Array();
     
-    $.ajax({
-        url: PATH + '/webapi/tree/packageslist',
-        type: 'GET',
-        data: {
-            projectname : projectname
-        },
-        dataType: "json",
-        async: false,
-        success: function(data) {
-            console.log("Receied from server, list of packages: " + data);
-            packagesList = data;
-        }
-    }); 
+    searchPackages(packagesList, projectStructure);
     
     return packagesList;
 }
+
+
 
 //!TODO
 function isRightProjectName(name) {
@@ -839,22 +835,27 @@ function isRightPackageName(packageName, projectName) {
 }
 
 function isRightClassName(name, packageName, projectName){
-    var result;
-    
-    $.ajax({
-        url: PATH + '/webapi/tree/rclassname',
-        type: 'GET',
-        data: {
-            name: name,
-            packageName: packageName,
-            projectName: projectName
-        },
-        dataType: "json",
-        async: false,
-        success: function(data) {
-            result = data;
-        }
-    }); 
+    var result = "ok";
+
+    if(name == null || packageName == null || projectName == null) {
+        result = "null";
+    }
+
+    //!TODO
+    // $.ajax({
+    //     url: PATH + '/webapi/tree/rclassname',
+    //     type: 'GET',
+    //     data: {
+    //         name: name,
+    //         packageName: packageName,
+    //         projectName: projectName
+    //     },
+    //     dataType: "json",
+    //     async: false,
+    //     success: function(data) {
+    //         result = data;
+    //     }
+    // });
 
     return result;
 }

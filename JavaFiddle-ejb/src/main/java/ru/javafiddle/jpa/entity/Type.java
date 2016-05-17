@@ -20,6 +20,8 @@ import java.util.List;
 public class Type {
 
     public static final int PROJECT_FILE_TYPEID = 2;
+    public static final String PROJECT_FILE_TYPENAME = "root";
+    public static final String SOURCEFOLDER_FILE_TYPENAME = "sources";
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

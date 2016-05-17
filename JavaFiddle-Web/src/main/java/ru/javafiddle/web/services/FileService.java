@@ -5,6 +5,7 @@ import ru.javafiddle.core.ejb.FileBean;
 import ru.javafiddle.jpa.entity.File;
 
 import ru.javafiddle.web.models.FileJF;
+import ru.javafiddle.web.models.NewFileModel;
 
 import javax.ejb.EJB;
 import javax.persistence.Access;
@@ -58,6 +59,19 @@ public class FileService {
                 fileJF.getData().getBytes(StandardCharsets.UTF_8),
                 fileJF.getType(),
                 fileJF.getPath());
+
+        return Response.ok().build();
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response create(NewFileModel newFileModel) {
+
+        filesBean.createEmptyFile(newFileModel.getProjectHash(),
+                newFileModel.getFileName(),
+                newFileModel.getTypeName(),
+                newFileModel.getPath()
+                );
 
         return Response.ok().build();
     }

@@ -110,3 +110,16 @@ function searchForProjectTreeForNode(node, searchedNodeId) {
         return "" + searchForProjectTreeForNode(node.childNodes[i], searchedNodeId);
     }
 }
+
+//recursive packages search
+function searchPackages(packagesList, node) {
+    if (node.type == "package") {
+        packagesList.push(node.name);
+    }
+    if(node.childNodes.length == 0) {
+        return;
+    }
+    for(var i = 0; i < node.childNodes.length; i++){
+        searchPackages(packagesList, node.childNodes[i]);
+    }
+}
