@@ -466,7 +466,7 @@ function addPackage() {
     // newPackageFile.projectHash = hashsList[$("#modal-newpack-project")[0].selectedIndex];
     newPackageFile.fileName = packageName;
     newPackageFile.typeName = "package";
-    newPackageFile.path = $("#modal-newpack-fullpath").val() + "/";
+    newPackageFile.path = $("#modal-newpack-fullpath").val();
     
     if(isRightPackageName(packageName, projectName)) {
         $.ajax({

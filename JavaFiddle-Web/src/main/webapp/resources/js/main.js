@@ -528,6 +528,7 @@ function compile() {
     saveProject();
 
     $.ajax({
+        async: false,   
         type: "GET",
         url: PATH + "/fiddle/compile/" + sessionStorage.projectID,
         success: function(data) {
