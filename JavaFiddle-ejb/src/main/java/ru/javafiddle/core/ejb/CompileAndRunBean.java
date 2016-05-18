@@ -2,8 +2,6 @@ package ru.javafiddle.core.ejb;
 
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
 import org.springframework.util.StringUtils;
 import ru.javafiddle.jpa.entity.File;
 import ru.ncedu.dynamic.*;
@@ -14,7 +12,8 @@ import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.tools.SimpleJavaFileObject;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -22,6 +21,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by artyom on 15.12.15.
@@ -38,7 +39,7 @@ public class CompileAndRunBean extends DynamicCompiler {
 
 
     public static final String DEFAULT_PACKAGE_PREFFIX = "";
-    private static final Logger LOG = Logger.getLogger(CompileAndRunBean.class);
+    private static final Logger LOG = Logger.getLogger(CompileAndRunBean.class.getName());
 
     public enum FileType {
         CLASS(8),
@@ -82,7 +83,7 @@ public class CompileAndRunBean extends DynamicCompiler {
 //        PrintStream printStream = new PrintStream(baos);
 //        PrintStream old = System.out;
 //        System.setOut(printStream);
-        BasicConfigurator.configure();
+//        BasicConfigurator.configure();
         List<File> sources;
         sources = fileBean.getProjectFiles(projectHash);
         init(ClassLoader.getSystemClassLoader());
@@ -91,7 +92,7 @@ public class CompileAndRunBean extends DynamicCompiler {
         try {
             message = compileToClass(userSources);
         } catch (Exception e) {
-            LOG.error("Exception, can't compile", e);
+            LOG.log(Level.WARNING, "Exception, can't compile", e);
             e.printStackTrace();
         }
         LOG.info(message);
@@ -114,23 +115,21 @@ public class CompileAndRunBean extends DynamicCompiler {
                 ProcessBuilder builder = new ProcessBuilder("java", mainMeth);
                 builder.directory(proj);
                 process = builder.start();
-                OutputStream stdin = process.getOutputStream ();
+                process.waitFor();
+//                OutputStream stdin = process.getOutputStream ();
                 InputStream stderr = process.getErrorStream ();
                 InputStream stdout = process.getInputStream ();
-                BufferedReader reader = new BufferedReader (new InputStreamReader(stdout));
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdin));
                 mes = "Stdout: " + new String(ByteStreams.toByteArray(stdout), StandardCharsets.UTF_8) + "\n";
                 String help = new String(ByteStreams.toByteArray(stderr), StandardCharsets.UTF_8);
                 if(!StringUtils.isEmpty(help)) {
                     mes += "Stderr: " + help + "\n";
                 }
+                stderr.close();
+                stdout.close();
                 java.io.File projectFile = new java.io.File(projectHash);
-                process.waitFor();
                 deleteFolders(projectFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } catch (IOException | InterruptedException e) {
+                LOG.log(Level.WARNING, "Problems with process", e);
             }
         }
         return mes;
@@ -157,7 +156,7 @@ public class CompileAndRunBean extends DynamicCompiler {
                         j++;
                     }
                 } catch (ClassNotFoundException | NullPointerException e) {
-                    e.printStackTrace();
+                    LOG.log(Level.WARNING, "Can't find main", e);
                 }
             }
         }
