@@ -211,7 +211,7 @@ public class ProjectService {
         fileBean.createEmptyFile(project.getHash().getHash(),
                 "src",
                 Type.SOURCEFOLDER_FILE_TYPENAME,
-                project.getProjectName() + "/src/"
+                project.getProjectName() + "/src"
         );
 
     }
