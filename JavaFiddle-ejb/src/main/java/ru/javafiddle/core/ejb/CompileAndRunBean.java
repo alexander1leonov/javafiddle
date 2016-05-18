@@ -129,7 +129,7 @@ public class CompileAndRunBean extends DynamicCompiler {
                 java.io.File projectFile = new java.io.File(projectHash);
                 deleteFolders(projectFile);
             } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
+                LOG.log(Level.WARNING, "Problems with process", e);
             }
         }
         return mes;
@@ -156,7 +156,7 @@ public class CompileAndRunBean extends DynamicCompiler {
                         j++;
                     }
                 } catch (ClassNotFoundException | NullPointerException e) {
-                    e.printStackTrace();
+                    LOG.log(Level.WARNING, "Can't find main", e);
                 }
             }
         }
